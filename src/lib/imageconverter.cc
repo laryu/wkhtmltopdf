@@ -74,7 +74,10 @@ void ImageConverterPrivate::clearResources() {
 
 void ImageConverterPrivate::pagesLoaded(bool ok) {
 	if (errorCode == 0) errorCode = loader.httpErrorCode();
+    int statusCode = 0;
 	if (!ok) {
+        statusCode = -1;
+        QTextStream(stdout) << "{\"Geometries\":[], \"StatusID\"=" << statusCode <<", \"StatusDesc\"=\"Could not load html page\"" << endl;
 		fail();
 		return;
 	}
@@ -134,6 +137,15 @@ void ImageConverterPrivate::pagesLoaded(bool ok) {
 	else
 		loaderObject->page.setViewportSize(QSize(highWidth, frame->contentsSize().height()));
 
+    // when content height > 64000, fail the process
+    if (frame->contentsSize().height() > 64000) {
+        statusCode = -2;
+        emit out.error("Could not create image larger than 64000 to output file");
+        QTextStream(stdout) << "{\"Geometries\":[], \"StatusID\"=" << statusCode <<", \"StatusDesc\"=\"Could not create image larger than 64000 to output file\"" << endl;
+        fail();
+        return;
+    }
+
 	QPainter painter;
 	QSvgGenerator generator;
 	QImage image;
@@ -152,6 +164,7 @@ void ImageConverterPrivate::pagesLoaded(bool ok) {
 		openOk = file.open(stdout, QIODevice::WriteOnly);
 
 	if (!openOk) {
+        statusCode = -1;
 		emit out.error("Could not write to output file");
 		fail();
 	}
@@ -163,6 +176,7 @@ void ImageConverterPrivate::pagesLoaded(bool ok) {
 	QRect rect = QRect(QPoint(0,0), loaderObject->page.viewportSize()).intersected(
 		QRect(settings.crop.left,settings.crop.top,settings.crop.width,settings.crop.height));
 	if (rect.width() == 0 || rect.height() == 0) {
+        statusCode = -1;
 		emit out.error("Will not output an empty image");
 		fail();
 	}
@@ -208,12 +222,38 @@ void ImageConverterPrivate::pagesLoaded(bool ok) {
 	if (settings.fmt != "svg") {
 		QByteArray fmt=settings.fmt.toLatin1();
 		if (!image.save(dev,fmt.data(), settings.quality)) {
+            statusCode = -2;
 			emit out.error("Could not save image");
 			fail();
 		}
 	}
 	loadProgress(100);
 
+    if (statusCode == 0) {
+        QWebElementCollection collection = frame->findAllElements("a");
+        QTextStream(stdout) << "Found total links: " << collection.count() << endl;
+        QTextStream(stdout) << "{\"Geometries\":[";
+        int elementCount = 0;
+        foreach(QWebElement e, collection) {
+            if (elementCount > 0) {
+                QTextStream(stdout) << "," << endl;
+            }
+            QTextStream(stdout) << "{\"LinkURL\":\"" << e.attribute("href") << "\",";
+            QTextStream(stdout) << "\"LinkText\":\"" << e.toPlainText() << "\",";
+            QRect rect = e.geometry();
+            QTextStream(stdout) << "\"LinkGeo\":\"" << rect.y() << "," << rect.x()
+                                << "," << rect.y() << "," << rect.x() + rect.width()
+                                << "," << rect.y() + rect.height()  << "," << rect.x() + rect.width()
+                                << "," << rect.y() + rect.height()  << "," << rect.x()
+                                << "," << rect.y() << "," << rect.x() << "\"}";
+            elementCount++;
+        }
+        QTextStream(stdout) << "], \"StatusID\"=0, \"StatusDesc\"=\"Success\"}" << endl;
+    } else {
+        QTextStream(stdout) << "{\"Geometries\":[], \"StatusID\"=" << statusCode << ", \"StatusDesc\"=\"Failed to generate image\"}" << endl;
+    }
+
+    errorCode = statusCode;
 	currentPhase = 2;
 	emit out.phaseChanged();
 	convertionDone = true;

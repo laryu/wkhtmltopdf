@@ -60,7 +60,7 @@ CropSettings::CropSettings():
 	height(-1) {}
 
 ImageGlobal::ImageGlobal():
-	screenWidth(1024),
+    screenWidth(800),
 	screenHeight(0),
 	quiet(false),
 	transparent(false),
