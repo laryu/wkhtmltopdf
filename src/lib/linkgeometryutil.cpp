@@ -98,7 +98,6 @@ static void processMapShape(QWebElement& element, QRect rect) {
 
 void LinkGeometryUtil::outputGeometry(const QWebFrame * frame) {
     QWebElementCollection collection = frame->findAllElements("a, img[usemap]");
-    QTextStream(stdout) << "Found total links: " << collection.count() << endl;
     QTextStream(stdout) << "{\"Geometries\":[";
     int elementCount = 0;
     foreach(QWebElement e, collection) {
