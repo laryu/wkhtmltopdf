@@ -21,10 +21,12 @@ DEFINES += BUILDING_DLL
 PUBLIC_HEADERS += ../lib/converter.hh ../lib/multipageloader.hh ../lib/dllbegin.inc
 PUBLIC_HEADERS += ../lib/dllend.inc ../lib/loadsettings.hh ../lib/websettings.hh
 PUBLIC_HEADERS += ../lib/utilities.hh
-HEADERS += ../lib/multipageloader_p.hh  ../lib/converter_p.hh
+HEADERS += ../lib/multipageloader_p.hh  ../lib/converter_p.hh \
+    ../lib/linkgeometryutil.h
 SOURCES += ../lib/loadsettings.cc ../lib/multipageloader.cc ../lib/tempfile.cc \
 	   ../lib/converter.cc ../lib/websettings.cc  \
-  	   ../lib/reflect.cc ../lib/utilities.cc
+  	   ../lib/reflect.cc ../lib/utilities.cc \
+    ../lib/linkgeometryutil.cpp
 
 #Pdf
 PUBLIC_HEADERS += ../lib/pdfconverter.hh ../lib/pdfsettings.hh

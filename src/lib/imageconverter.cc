@@ -35,6 +35,7 @@
 #include <QWebFrame>
 #include <QWebPage>
 #include <qapplication.h>
+#include "linkgeometryutil.h"
 namespace wkhtmltopdf {
 
 ImageConverterPrivate::ImageConverterPrivate(ImageConverter & o, wkhtmltopdf::settings::ImageGlobal & s, const QString * data):
@@ -77,8 +78,8 @@ void ImageConverterPrivate::pagesLoaded(bool ok) {
     int statusCode = 0;
 	if (!ok) {
         statusCode = -1;
-        QTextStream(stdout) << "{\"Geometries\":[], \"StatusID\"=" << statusCode <<", \"StatusDesc\"=\"Could not load html page\"" << endl;
-		fail();
+        LinkGeometryUtil::outputErrorMessage(statusCode, "Could not load html page");
+        fail();
 		return;
 	}
 	// if fmt is empty try to get it from file extension in out
@@ -141,7 +142,7 @@ void ImageConverterPrivate::pagesLoaded(bool ok) {
     if (frame->contentsSize().height() > 64000) {
         statusCode = -2;
         emit out.error("Could not create image larger than 64000 to output file");
-        QTextStream(stdout) << "{\"Geometries\":[], \"StatusID\"=" << statusCode <<", \"StatusDesc\"=\"Could not create image larger than 64000 to output file\"" << endl;
+        LinkGeometryUtil::outputErrorMessage(statusCode, "Could not create image larger than 64000 to output file");
         fail();
         return;
     }
@@ -230,27 +231,9 @@ void ImageConverterPrivate::pagesLoaded(bool ok) {
 	loadProgress(100);
 
     if (statusCode == 0) {
-        QWebElementCollection collection = frame->findAllElements("a");
-        QTextStream(stdout) << "Found total links: " << collection.count() << endl;
-        QTextStream(stdout) << "{\"Geometries\":[";
-        int elementCount = 0;
-        foreach(QWebElement e, collection) {
-            if (elementCount > 0) {
-                QTextStream(stdout) << "," << endl;
-            }
-            QTextStream(stdout) << "{\"LinkURL\":\"" << e.attribute("href") << "\",";
-            QTextStream(stdout) << "\"LinkText\":\"" << e.toPlainText() << "\",";
-            QRect rect = e.geometry();
-            QTextStream(stdout) << "\"LinkGeo\":\"" << rect.y() << "," << rect.x()
-                                << "," << rect.y() << "," << rect.x() + rect.width()
-                                << "," << rect.y() + rect.height()  << "," << rect.x() + rect.width()
-                                << "," << rect.y() + rect.height()  << "," << rect.x()
-                                << "," << rect.y() << "," << rect.x() << "\"}";
-            elementCount++;
-        }
-        QTextStream(stdout) << "], \"StatusID\"=0, \"StatusDesc\"=\"Success\"}" << endl;
+        LinkGeometryUtil::outputGeometry(frame);
     } else {
-        QTextStream(stdout) << "{\"Geometries\":[], \"StatusID\"=" << statusCode << ", \"StatusDesc\"=\"Failed to generate image\"}" << endl;
+        LinkGeometryUtil::outputErrorMessage(statusCode, "Failed to generate image");
     }
 
     errorCode = statusCode;
