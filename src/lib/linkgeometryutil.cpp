@@ -1,8 +1,59 @@
+//
+// Copyright 2014 wkhtmltopdf authors
+//
+// This file is part of wkhtmltopdf.
+//
+// wkhtmltopdf is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Lesser General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// wkhtmltopdf is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with wkhtmltopdf.  If not, see <http://www.gnu.org/licenses/>.
+
 #include "linkgeometryutil.h"
-//#include <cstdio>
 #include <QTextStream>
 #include <QWebElement>
 #include <QWebFrame>
+
+// the JSON string clean up function borrowed from QJson project
+static QString sanitizeString( QString str )
+{
+    str.replace( QLatin1String( "\\" ), QLatin1String( "\\\\" ) );
+
+    // escape unicode chars
+    QString result;
+    const ushort* unicode = str.utf16();
+    unsigned int i = 0;
+
+    while ( unicode[ i ] ) {
+        if ( unicode[ i ] < 128 ) {
+            result.append( QChar( unicode[ i ] ) );
+        }
+        else {
+            QString hexCode = QString::number( unicode[ i ], 16 ).rightJustified( 4,
+                                                                                  QLatin1Char('0') );
+
+            result.append( QLatin1String ("\\u") ).append( hexCode );
+        }
+        ++i;
+    }
+    str = result;
+
+    str.replace( QLatin1String( "\"" ), QLatin1String( "\\\"" ) );
+    str.replace( QLatin1String( "\b" ), QLatin1String( "\\b" ) );
+    str.replace( QLatin1String( "\f" ), QLatin1String( "\\f" ) );
+    str.replace( QLatin1String( "\n" ), QLatin1String( "\\n" ) );
+    str.replace( QLatin1String( "\r" ), QLatin1String( "\\r" ) );
+    str.replace( QLatin1String( "\t" ), QLatin1String( "\\t" ) );
+
+    return str;
+}
 
 LinkGeometryUtil::LinkGeometryUtil() {
 }
@@ -17,12 +68,7 @@ void LinkGeometryUtil::outputErrorMessage(int statusCode, const char * errorMsg)
 static void outputElementGeometry(QString& href, QString& plainText, QRect rect) {
     QTextStream(stdout) << "{\"LinkURL\":\"" << href << "\",";
 
-    // replace \n char to space in text
-    if (plainText.contains("\n"))
-        plainText = plainText.replace("\n", " ");
-    if (plainText.contains("\""))
-        plainText = plainText.replace("\"", "");
-    QTextStream(stdout) << "\"LinkText\":\"" << plainText << "\",";
+    QTextStream(stdout) << "\"LinkText\":\"" << sanitizeString(plainText) << "\",";
 
     QTextStream(stdout) << "\"LinkGeo\":\"" << rect.y() << "," << rect.x()
                         << "," << rect.y() << "," << rect.x() + rect.width()
