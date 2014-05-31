@@ -18,8 +18,10 @@ static void outputElementGeometry(QString& href, QString& plainText, QRect rect)
     QTextStream(stdout) << "{\"LinkURL\":\"" << href << "\",";
 
     // replace \n char to space in text
-    if (!plainText.isNull())
+    if (plainText.contains("\n"))
         plainText = plainText.replace("\n", " ");
+    if (plainText.contains("\""))
+        plainText = plainText.replace("\"", "");
     QTextStream(stdout) << "\"LinkText\":\"" << plainText << "\",";
 
     QTextStream(stdout) << "\"LinkGeo\":\"" << rect.y() << "," << rect.x()
@@ -88,7 +90,7 @@ static void processMapShape(QWebElement& element, QRect rect) {
     } else if (normalizeShape == "rect") {
         elementRect = processRectShapeCoords(coords, rect);
     } else if (normalizeShape == "circle") {
-        elementRect = processRectShapeCoords(coords, rect);
+        elementRect = processCircleShapeCoords(coords, rect);
     }
 
     QString href = element.attribute("href");

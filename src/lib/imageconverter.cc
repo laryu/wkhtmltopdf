@@ -223,7 +223,7 @@ void ImageConverterPrivate::pagesLoaded(bool ok) {
 	if (settings.fmt != "svg") {
 		QByteArray fmt=settings.fmt.toLatin1();
 		if (!image.save(dev,fmt.data(), settings.quality)) {
-            statusCode = -2;
+            statusCode = -1;
 			emit out.error("Could not save image");
 			fail();
 		}
