@@ -89,8 +89,10 @@ Specifies the coordinates of the edges of the polygon. If the first and last coo
 the browser will add the last coordinate pair to close the polygon (for shape="poly")
 */
 static QRect processPloyShapeCoords(QString& coords, QRect& rect) {
-    int minX = 0, minY = 0,  maxX = 0, maxY = 0;
+    int maxX = 0, maxY = 0;
     QStringList list = coords.split(",");
+    int minX = list.at(0).toInt();
+    int minY = list.at(1).toInt();
     for (int i = 0; i < list.size(); i=i+2) {
         int x = list.at(i).toInt();
         int y = list.at(i+1).toInt();
