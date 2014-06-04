@@ -151,32 +151,40 @@ void LinkGeometryUtil::outputGeometry(const QWebFrame * frame) {
     QTextStream(stdout) << "{\"Geometries\":[";
     int elementCount = 0;
     foreach(QWebElement e, collection) {
-        if (elementCount > 0) {
-            QTextStream(stdout) << "," << endl;
-        }
-
         if (e.tagName().toLower() == "a") {
+            if (elementCount > 0) {
+                QTextStream(stdout) << "," << endl;
+            }
             QString href = e.attribute("href");
             QString text = e.toPlainText();
             outputElementGeometry(href, text, e.geometry());
+            elementCount++;
         } else if (e.tagName().toLower() == "img") {
             QString mapName = e.attribute("usemap");
             if (mapName.startsWith("#"))
                 mapName = mapName.right(mapName.size() - 1);
             QWebElement map = frame->findFirstElement("map[name=" + mapName + "]");
-            QWebElement child = map.firstChild();
-            if (!child.isNull())
-                processMapShape(child, e.geometry());
-            QWebElement current = child;
-            QWebElement next;
-            while (!(next = current.nextSibling()).isNull()) {
-                QTextStream(stdout) << "," << endl;
-                processMapShape(next, e.geometry());
-                current = next;
+            if (map.isNull()) {
+                continue;
             }
+            QWebElement child = map.firstChild();
+            if (!child.isNull()) {
+                if (elementCount > 0) {
+                    QTextStream(stdout) << "," << endl;
+                }
+                processMapShape(child, e.geometry());
 
+                QWebElement current = child;
+                QWebElement next;
+                while (!(next = current.nextSibling()).isNull()) {
+                    QTextStream(stdout) << "," << endl;
+                    processMapShape(next, e.geometry());
+                    current = next;
+                }
+                elementCount++;
+            }
         }
-        elementCount++;
+
     }
     QTextStream(stdout) << "], \"StatusID\":0, \"StatusDesc\":\"Success\"}" << endl;
 }
