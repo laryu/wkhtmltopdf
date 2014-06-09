@@ -131,14 +131,21 @@ static QRect processCircleShapeCoords(QString& coords, QRect& rect) {
 
 static void processMapShape(QWebElement& element, QRect rect) {
     QRect elementRect;
-    QString normalizeShape = element.attribute("shape").toLower();
+    QString normalizeShape = element.attribute("shape");
     QString coords = element.attribute("coords");
-    if (normalizeShape == "poly") {
+
+    if (normalizeShape.isNull() || normalizeShape.isEmpty()) {
+        // treat missing or empty shape attribute as poly
         elementRect = processPloyShapeCoords(coords, rect);
-    } else if (normalizeShape == "rect") {
-        elementRect = processRectShapeCoords(coords, rect);
-    } else if (normalizeShape == "circle") {
-        elementRect = processCircleShapeCoords(coords, rect);
+    } else {
+        normalizeShape = normalizeShape.toLower();
+        if (normalizeShape == "poly") {
+            elementRect = processPloyShapeCoords(coords, rect);
+        } else if (normalizeShape == "rect") {
+            elementRect = processRectShapeCoords(coords, rect);
+        } else if (normalizeShape == "circle") {
+            elementRect = processCircleShapeCoords(coords, rect);
+        }
     }
 
     QString href = element.attribute("href");

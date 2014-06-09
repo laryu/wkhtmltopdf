@@ -136,7 +136,7 @@ LoadGlobal::LoadGlobal():
 	cookieJar("") {}
 
 LoadPage::LoadPage():
-	jsdelay(200),
+	jsdelay(60),
 	windowStatus(""),
 	cacheDir(""),
 	zoomFactor(1.0),
