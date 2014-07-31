@@ -164,7 +164,16 @@ void LinkGeometryUtil::outputGeometry(const QWebFrame * frame) {
             }
             QString href = e.attribute("href");
             QString text = e.toPlainText();
-            outputElementGeometry(href, text, e.geometry());
+            QRect rect = e.geometry();
+            if (rect.height() < 1) {
+                QWebElement c = e.firstChild();
+                if (!c.isNull()) {
+                    rect.setHeight(c.geometry().height());
+                    text = c.attribute("alt");
+                }
+            }
+
+            outputElementGeometry(href, text, rect);
             elementCount++;
         } else if (e.tagName().toLower() == "img") {
             QString mapName = e.attribute("usemap");
