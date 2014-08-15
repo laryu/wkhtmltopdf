@@ -165,10 +165,11 @@ void LinkGeometryUtil::outputGeometry(const QWebFrame * frame) {
             QString href = e.attribute("href");
             QString text = e.toPlainText();
             QRect rect = e.geometry();
-            if (rect.height() < 1) {
+            if (rect.height() < 1 || rect.width() < 1) {
                 QWebElement c = e.firstChild();
                 if (!c.isNull()) {
                     rect.setHeight(c.geometry().height());
+                    rect.setWidth(c.geometry().width());
                     text = c.attribute("alt");
                 }
             }
