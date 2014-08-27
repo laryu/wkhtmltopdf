@@ -68,7 +68,9 @@ void LinkGeometryUtil::outputErrorMessage(int statusCode, const char * errorMsg)
 static void outputElementGeometry(QString& href, QString& plainText, QRect rect) {
     QTextStream(stdout) << "{\"LinkURL\":\"" << href << "\",";
 
-    QTextStream(stdout) << "\"LinkText\":\"" << sanitizeString(plainText) << "\",";
+    // output the text extracted from HTML created lot of trouble.
+    // seen many special characters in there. Skip that field in the output.
+    QTextStream(stdout) << "\"LinkText\":\"\",";
 
     QTextStream(stdout) << "\"LinkGeo\":\"" << rect.y() << "," << rect.x()
                         << "," << rect.y() << "," << rect.x() + rect.width()
